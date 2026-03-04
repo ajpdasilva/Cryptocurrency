@@ -1,0 +1,6 @@
+# requirements.txt
+apache-airflow
+dotenv
+pandas
+psycopg2-binary
+requests

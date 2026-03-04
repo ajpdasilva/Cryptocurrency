@@ -1,0 +1,131 @@
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from airflow.operators.empty import EmptyOperator
+from airflow.utils.dates import days_ago
+from datetime import datetime, timedelta
+import requests
+import pandas as pd
+import psycopg2
+import json
+import logging
+import os
+
+default_args = {
+    "owner": "data_engineer",
+    "depends_on_past": False,
+    "retries": 2,
+    "retry_delay": timedelta(minutes=5),
+}
+
+with DAG(
+    dag_id="crypto_market_etl_pipeline",
+    default_args=default_args,
+    description="Daily ETL pipeline for cryptocurrency market data",
+    schedule="@daily",
+    #schedule="0 12 * * *",
+    start_date=datetime(2026, 2, 1),
+    end_date=datetime(2026, 12, 31),
+    catchup=False,
+    max_active_runs=1,
+    tags=["crypto", "etl", "postgres"],
+) as dag:
+
+    start = EmptyOperator(task_id="start")
+
+    def extract_data(**context):
+        url = "https://api.coingecko.com/api/v3/coins/markets"
+        params = {
+            "vs_currency": "usd",
+            "order": "market_cap_desc",
+            "per_page": 100,
+            "page": 1,
+            "sparkline": "false"
+        }
+
+        response = requests.get(url, params=params)
+
+        if response.status_code != 200:
+            raise Exception("API request failed")
+
+        data = response.json()
+
+        context['ti'].xcom_push(key="raw_data", value=data)
+
+    extract_task = PythonOperator(
+        task_id="extract_crypto_data",
+        python_callable=extract_data
+    )
+
+    def transform_data(**context):
+        raw_data = context['ti'].xcom_pull(key="raw_data")
+
+        df = pd.DataFrame(raw_data)
+
+        df["last_updated"] = pd.to_datetime(df["last_updated"])
+        df["ath_date"] = pd.to_datetime(df["ath_date"])
+
+        df["load_date"] = pd.to_datetime("today").date()
+
+        cleaned_data = df.to_dict(orient="records")
+        context['ti'].xcom_push(key="cleaned_data", value=cleaned_data)
+
+    transform_task = PythonOperator(
+        task_id="transform_data",
+        python_callable=transform_data
+    )
+
+    def load_data(**context):
+        cleaned_data = context['ti'].xcom_pull(key="cleaned_data")
+
+        conn = psycopg2.connect(
+            host="postgres",
+            database="crypto_db",
+            user="postgres",
+            password="postgres"
+        )
+
+        cursor = conn.cursor()
+
+        for row in cleaned_data:
+            cursor.execute("""
+                INSERT INTO crypto_staging (
+                    coin_id, symbol, name, current_price,
+                    market_cap, market_cap_rank, total_volume,
+                    high_24h, low_24h, price_change_24h,
+                    price_change_percentage_24h, circulating_supply,
+                    total_supply, ath, ath_date, last_updated, load_date
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (coin_id, load_date) DO NOTHING;
+            """, (
+                row["id"],
+                row["symbol"],
+                row["name"],
+                row["current_price"],
+                row["market_cap"],
+                row["market_cap_rank"],
+                row["total_volume"],
+                row["high_24h"],
+                row["low_24h"],
+                row["price_change_24h"],
+                row["price_change_percentage_24h"],
+                row["circulating_supply"],
+                row["total_supply"],
+                row["ath"],
+                row["ath_date"],
+                row["last_updated"],
+                row["load_date"],
+            ))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+    load_task = PythonOperator(
+        task_id="load_staging_table",
+        python_callable=load_data
+    )
+
+    end = EmptyOperator(task_id="end")
+
+    start >> extract_task >> transform_task >> load_task >> end
