@@ -70,7 +70,7 @@ crypto_market/
 ```
 ```text
 # 2. Configure environment variables
-Edit .env with your database credentials & parameters
+    - Edit .env with your database credentials & parameters
 ```
 ```text
 # 3. Create and activate Virtual Environment
