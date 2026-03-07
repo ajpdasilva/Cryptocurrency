@@ -70,7 +70,16 @@ crypto_market/
 ```
 ```text
 # 2. Configure environment variables
-    - Edit .env with your database credentials & parameters
+    - Edit .env with the necessary credentials & parameters
+
+    AIRFLOW_UID=50000
+    AIRFLOW_PORT=8000
+`
+    POSTGRES_HOST=%host%
+    POSTGRES_DB=%database_name%
+    POSTGRES_USER=%username%
+    POSTGRES_PWD=%user_pwd%
+    POSTGRES_PORT=%port%
 ```
 ```text
 # 3. Create and activate Virtual Environment
@@ -88,7 +97,7 @@ crypto_market/
 ```
 ```text
 # 6. Setup Crypto database tables
-    - psql -h host -U username -d database_name -f sql/create_tables.sql
+    - psql -h %host% -p %port% -U %username% -d %database_name% -f sql/create_tables.sql
 ```
 
 ### ETL Workflow

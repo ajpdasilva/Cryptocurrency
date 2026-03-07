@@ -92,8 +92,6 @@ def load_to_raw_table(conn, data):
         conn.commit()
         logging.info("Data successfully inserted into crypto_raw table.")
 
-        conn.close()
-        logging.info("Database connection closed.")
     except Exception as e:
         logging.error(f"Error inserting data into crypto_raw table: {e}")
         conn.close()

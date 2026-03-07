@@ -21,15 +21,7 @@ logging.basicConfig(
 )
 
 
-def run_quality_check(load_date):
-
-    try:
-        conn = psycopg2.connect(**db_config)
-        logging.info("Database connection successful")
-    except psycopg2.Error as e:
-        logging.error(f"Unable to connect to the database: {e}")
-        raise Exception("Database connection failed")
-    
+def check_crypto_data_quality(conn, load_date):
     cursor = conn.cursor()
     check_query = "SELECT COUNT(*) FROM crypto_data WHERE load_date = %s"
     cursor.execute(check_query, (load_date,))
@@ -38,7 +30,34 @@ def run_quality_check(load_date):
     if count == 0:
         raise ValueError("No data loaded.")
 
-    logging.info(f"Quality check done: Found {count} rows for load date {load_date}")
-
+    logging.info(f"Quality check done: Found {count} rows for load date {load_date} on crypto_data table.")
     cursor.close()
-    conn.close()
+
+
+def check_crypto_daily_summary_quality(conn, summary_date):
+    cursor = conn.cursor()
+    check_query = "SELECT COUNT(*) FROM crypto_daily_summary WHERE summary_date = %s"
+    cursor.execute(check_query, (summary_date,))
+    count = cursor.fetchone()[0]
+
+    if count == 0:
+        raise ValueError("No data loaded.")
+
+    logging.info(f"Quality check done: Found {count} row(s) for summary date {summary_date} on crypto_daily_summary table.")
+    cursor.close()
+
+
+def run_quality_check(date):
+
+    try:
+        db = psycopg2.connect(**db_config)
+        logging.info("Database connection successful")
+    except psycopg2.Error as e:
+        logging.error(f"Unable to connect to the database: {e}")
+        raise Exception("Database connection failed")
+    
+    check_crypto_data_quality(db, date)
+
+    check_crypto_daily_summary_quality(db, date)
+
+    db.close()

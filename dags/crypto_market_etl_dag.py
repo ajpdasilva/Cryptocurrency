@@ -11,7 +11,7 @@ sys.path.insert(0, project_root)
 
 from scripts.extract import run_extract
 from scripts.transform import transform_crypto_data
-from scripts.load import load_to_staging
+from scripts.load import load_to_data
 from scripts.quality_check import run_quality_check
 
 default_args = {
@@ -46,7 +46,8 @@ with DAG(
 
     def load_task_callable(**context):
        data = context["ti"].xcom_pull(task_ids="transform", key="transformed_data")
-       load_to_staging(data)
+       execution_date = context["ds"]
+       load_to_data(data, execution_date)
     
     extract = PythonOperator(
         task_id="extract", 
