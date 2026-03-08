@@ -129,4 +129,4 @@ crypto_market/
 
 ### ScreenShots
 ![airflow_main](diagrams/airflow_main.png)
-<table><tr><td><img src="diagrams/airflow_dag.png" width="400"></td><td><img src="diagrams/airflow_dag_2.png" width="400"></td></tr></table>
+<table><tr><td><img src="diagrams/airflow_dag.png" width="500"></td><td><img src="diagrams/airflow_dag_2.png" width="500"></td></tr></table>
