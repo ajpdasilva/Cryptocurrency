@@ -128,5 +128,5 @@ crypto_market/
 "# Cryptocurrency" 
 
 ### ScreenShots
-![airflow_main](diagrams/airflow_main.png)
-|<kbd><img src="diagrams/airflow_dag.png" width="600"><kbd>|<kbd><img src="diagrams/airflow_dag_2.png" width="600"><kbd>|
+<kbd><img src="diagrams/airflow_main.png" width="600"></kbd>
+|<kbd><img src="diagrams/airflow_dag.png" width="600"></kbd>|<kbd><img src="diagrams/airflow_dag_2.png" width="600"></kbd>|
