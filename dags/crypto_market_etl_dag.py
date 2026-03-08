@@ -13,6 +13,7 @@ from scripts.extract import run_extract
 from scripts.transform import transform_crypto_data
 from scripts.load import load_to_data
 from scripts.quality_check import run_quality_check
+from scripts.analytics import load_to_analytics
 
 default_args = {
     "owner": "data_engineer",
@@ -49,6 +50,10 @@ with DAG(
        execution_date = context["ds"]
        load_to_data(data, execution_date)
     
+    def load_task_analytics(**context):
+        execution_date = context["ds"]
+        load_to_analytics(execution_date)
+
     extract = PythonOperator(
         task_id="extract", 
         python_callable=extract_task_callable
@@ -64,9 +69,15 @@ with DAG(
         python_callable=load_task_callable
     )
     
+    analytics = PythonOperator(
+        task_id="analytics", 
+        python_callable=load_task_analytics
+        # python_callable=lambda **context: load_to_analytics(context["ds"])
+    )
+    
     quality = PythonOperator(
         task_id="data_quality_check",
         python_callable=lambda **context: run_quality_check(context["ds"])
     )
 
-    extract >> transform >> load >> quality
+    extract >> transform >> load >> analytics >> quality

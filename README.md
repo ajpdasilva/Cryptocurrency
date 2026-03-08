@@ -8,7 +8,8 @@
 - [DAG Structure](#dag-structure)
 - [Installation and Setup](#installation-and-setup)
 - [ETL Workflow](#etl-workflow)
-- [Dashboard Example](#dashboard-example)
+- [Dashboard](#dashboard)
+- [ScreenShots](#screenshots)
 
 ### Project Overview
 
@@ -46,6 +47,7 @@ crypto_market/
 │   ├── extract.py
 │   ├── transform.py
 │   ├── load.py
+│   ├── anaalytics.py
 │   └── quality_check.py
 │
 ├── sql/
@@ -121,6 +123,10 @@ crypto_market/
 - create summary aggregation
 - Insert into crypto_daily_summary
 
-### Dashboard Example
+### Dashboard
 ![dashboard_crypto](diagrams/????.png)
 "# Cryptocurrency" 
+
+### ScreenShots
+![airflow_main](diagrams/airflow_main.png)
+![airflow_dag](diagrams/airflow_dag.png)  |  ![airflow_dag_2](diagrams/airflow_dag_2.png)
