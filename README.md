@@ -1,4 +1,4 @@
-# 🚀 Project: Cryptocurrency Market ETL Pipeline
+# Project: Cryptocurrency Market ETL Pipeline
 
 ## Table of Contents
 - [Project Overview](#overview)
@@ -18,11 +18,12 @@ This project implements an ETL pipeline that extracts daily cryptocurrency marke
 Build an ETL pipeline that:
 - Extracts cryptocurrency market data via API
 - Clean and transform the JSON raw data
-- Load the structured data into PostgreSQL
+- Load the structured data into a relational database (PostgreSQL)
 - Use Airflow to automate and schedule the workflow
 - Stores logs
 - Data quality check
 - Containerized deployment
+- Provide a dashboard for visualization
 
 ### Architecture Overview
 ![architecture](diagrams/Architecture_Overview.png)
@@ -34,29 +35,29 @@ crypto_market/
 ├── config/
 │
 ├── dags/
-│   └── crypto_market_etl_dag.py
+│   └── crypto_market_etl_dag.py    # DAG code to execute scripts as per schedule
 │
 ├── logs/
 │
 ├── plugins/
 │
 ├── postgres/
-│   └── airflow_init.sql
+│   └── airflow_init.sql            # Script to create Airflow schema
 │
 ├── scripts/
-│   ├── extract.py
-│   ├── transform.py
-│   ├── load.py
-│   ├── anaalytics.py
-│   └── quality_check.py
+│   ├── extract.py                  # Code for extracting data via API
+│   ├── transform.py                # Code for data cleaning and transforming
+│   ├── load.py                     # Code for loading data into PostgreSQL
+│   ├── analytics.py                # Code for loading & summarizing analytical data
+│   └── quality_check.py            # Code to perform data checks
 │
 ├── sql/
-│   └── create_tables.sql
+│   └── create_tables.sql           # SQL script to create schema tables
 │
-├── .env
-├── docker-compose.yml
-├── requirements.txt
-└── README.md
+├── .env                            # Environment Variables file
+├── docker-compose.yml              # Multi-container configuration file
+├── requirements.txt                # Python dependencies
+└── README.md                       # Project documentation
 ```
 
 ### Database Schema
@@ -94,7 +95,7 @@ crypto_market/
     - pip install -r requirements.txt
 ```
 ```text
-# 5. Setup and run Docker Containers (PostgreSQL & Airflow)
+# 5. Run all services with Docker (PostgreSQL & Airflow)
     - docker compose -f docker-compose.yml up -d
 ```
 ```text
