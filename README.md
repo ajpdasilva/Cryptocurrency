@@ -125,8 +125,7 @@ crypto_market/
 - Insert into crypto_daily_summary
 
 ### Dashboard
-![dashboard_crypto](diagrams/????.png)
-"# Cryptocurrency" 
+![dashboard_crypto](diagrams/CryptoMarket_Dashboard.png)
 
 ### ScreenShots
 ![airflow_main](diagrams/airflow_main.png)

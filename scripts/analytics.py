@@ -57,6 +57,52 @@ def load_to_crypto_daily_summary(conn, load_date):
         raise Exception("Data loading failed")
 
 
+def create_update_price_history(conn):
+    """Create or refresh the materialized view for price history."""
+    create_view_query = """
+		CREATE MATERIALIZED VIEW IF NOT EXISTS mv_price_history AS
+		SELECT
+			coin_id,
+			load_date AS date,
+			MIN(current_price) AS daily_low,
+			MAX(current_price) AS daily_high,
+			FIRST_VALUE(current_price) OVER (PARTITION BY coin_id, load_date ORDER BY last_updated) AS open_price,
+			LAST_VALUE(current_price) OVER (PARTITION BY coin_id, load_date ORDER BY last_updated ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS close_price,
+			SUM(total_volume) AS daily_volume
+		FROM crypto_data
+		GROUP BY coin_id, load_date;
+
+		CREATE UNIQUE INDEX IF NOT EXISTS idx_price_history_coin_date_id 
+		ON mv_price_history (coin_id, date);
+	"""
+    
+    try:
+        cur = conn.cursor()
+
+        # Check if the materialized view exists
+        cur.execute("SELECT count(*) FROM pg_matviews WHERE matviewname = 'mv_price_history'")
+        exists = cur.fetchone()[0] > 0
+
+        if not exists:
+            cur.execute(create_view_query)
+            logging.info("Materialized View 'mv_price_history' was created successfully.")
+        else:
+            logging.info("Materialized View exists. Refreshing data concurrently...")
+            try:
+                # CONCURRENTLY allows users to query the view while it refreshes
+                cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY mv_price_history;")
+                logging.info("Refresh of Materialized View 'mv_price_history' completed successfully.")
+            except psycopg2.Error as e:
+                logging.error(f"Error refreshing materialized view: {e}")
+                raise Exception("Materialized view refresh failed")
+        
+        cur.close()
+
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+        cur.close()
+
+
 def connect_db():
     """Establish a connection to the PostgreSQL database."""
     try:
@@ -75,6 +121,6 @@ def load_to_analytics(run_date):
 
     try:
         load_to_crypto_daily_summary(db, run_date)
-
+        create_update_price_history(db)
     finally:
         db.close()
