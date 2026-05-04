@@ -4,7 +4,6 @@ from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 from datetime import datetime, timedelta
 
-# Get the directory where the DAG file sits, then go one level up to the project root
 dag_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.join(dag_dir, '..')
 sys.path.insert(0, project_root) 
